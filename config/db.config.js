@@ -4,8 +4,8 @@ dotenv.config();
 module.exports = {
   HOST: "localhost",
   USER: "root",
-  PASSWORD: "",
-  DB: "gboDB",
+  PASSWORD: "Solura@v10",
+  DB: "sbdb",
   dialect: "mysql",
   pool: {
     max: 5,

@@ -2,6 +2,7 @@ const { PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const s3 = require("../config/s3.config");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+const sharp = require("sharp"); // ⬅️ add this
 
 // Helper function to get today's date in the format YYYYMMDD
 const getFormattedDate = () => {
@@ -22,11 +23,24 @@ const uploadImageToS3 = async (file, order_id) => {
   // Create the S3 key in the format order_id/IMG-today's date-filename
   const s3Key = `${order_id}/${uniqueFileName}`;
 
+  // ⬇️ compress/resize with sharp before upload
+  // you can adjust width & quality according to your needs
+  let compressedBuffer;
+  if (file.mimetype.startsWith("image/")) {
+    compressedBuffer = await sharp(file.buffer)
+      .resize({ width: 1024 })         // max width 1024px (keeps aspect ratio)
+      .jpeg({ quality: 80 })           // convert to jpeg with 80% quality
+      .toBuffer();
+  } else {
+    // if not an image, just keep original buffer
+    compressedBuffer = file.buffer;
+  }
+
   const params = {
     Bucket: bucketName,
     Key: s3Key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
+    Body: compressedBuffer,
+    ContentType: "image/jpeg", // because we converted to jpeg
   };
 
   try {
